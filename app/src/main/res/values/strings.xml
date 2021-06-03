@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">DrawAndGuess</string>
+    <string name="login">登录</string>
+    <string name="please_input_your_nickname">请输入您的昵称：</string>
+    <string name="nick_name_rule">请使用2&#8211;8位中文或英文字符</string>
+    <string name="draw_and_guess">你画我猜</string>
+    <string name="join_room">加入房间</string>
+    <string name="create_room">创建房间</string>
+    <string name="pencil">画笔</string>
+    <string name="color_picker">调色板</string>
+    <string name="paint_bucket">油漆桶</string>
+    <string name="eraser">橡皮擦</string>
+    <string name="copy_right">本应用由橙子姐姐倾情提供©2021</string>
+    <string name="logo">图标</string>
+    <string name="nick_name_hint">请输入8位以内的昵称</string>
+    <string name="phone_number_hint">请输入手机号</string>
+    <string name="password_hint">请输入密码</string>
+    <string name="register">注册</string>
+    <string name="welcome_to_guess_and_draw">"欢迎来到你画我猜,%1$s"</string>
+    <string name="please_input_room_id">请输入房间号</string>
+    <string name="submit">提交</string>
+    <string name="input_room_hint">请输入6位房间号</string>
+    <string name="loading">加载中...</string>
+</resources>

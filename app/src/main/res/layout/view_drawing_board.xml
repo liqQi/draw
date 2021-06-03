@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:background="@drawable/bg_drawing_tool_box"
+        android:divider="@drawable/divider_drawing_tool"
+        android:showDividers="beginning|middle|end"
+        android:id="@+id/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:background="@drawable/bg_drawing_tool_btn"
+            android:id="@+id/pencil"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/pencil"
+            android:foreground="?selectableItemBackground"
+            android:padding="5dp"
+            android:src="@drawable/ic_pencil" />
+
+        <ImageView
+            android:background="@drawable/bg_drawing_tool_btn"
+            android:id="@+id/color_picker"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/color_picker"
+            android:foreground="?selectableItemBackground"
+            android:padding="5dp"
+            android:src="@drawable/ic_color_picker" />
+
+        <ImageView
+            android:background="@drawable/bg_drawing_tool_btn"
+            android:id="@+id/paint_bucket"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/paint_bucket"
+            android:foreground="?selectableItemBackground"
+            android:padding="5dp"
+            android:src="@drawable/ic_paint_bucket" />
+
+        <ImageView
+            android:background="@drawable/bg_drawing_tool_btn"
+            android:id="@+id/eraser"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/eraser"
+            android:foreground="?selectableItemBackground"
+            android:padding="5dp"
+            android:src="@drawable/ic_eraser" />
+    </LinearLayout>
+
+    <com.saynope.drawandguess.view.DrawingCanvasView
+        android:id="@+id/drawing_canvas"
+        android:layout_width="match_parent"
+        android:layout_above="@id/tools"
+        android:layout_height="match_parent"/>
+</merge>
