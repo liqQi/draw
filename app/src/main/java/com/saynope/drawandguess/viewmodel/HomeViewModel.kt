@@ -23,8 +23,6 @@ class HomeViewModel @Inject constructor(
 
     val user = MutableLiveData<User>()
 
-
-    val roomJoinStatus: MutableLiveData<Boolean> = MutableLiveData<Boolean>(false)
     val roomJoinResponse: MutableLiveData<Room> = MutableLiveData()
 
     init {
@@ -33,22 +31,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun receiveMessage():Flow<RoomMessage>{
-        return  roomRepo.receiveMessage()
-    }
-
-
     fun createRoom() {
         safeCallNet(
             { roomRepo.createRoom(user.value?.id.toString()) },
-            { t -> roomJoinResponse.postValue(t) })
+            { t ->
+                roomJoinResponse.postValue(t)
+                roomRepo.cacheRoom(t)
+            })
     }
 
 
     fun joinRoom(roomId: String) {
         safeCallNet(
             { roomRepo.joinRoom(roomId, user.value?.id.toString()) },
-            { t -> roomJoinResponse.postValue(t) })
+            { t ->
+                roomJoinResponse.postValue(t)
+                roomRepo.cacheRoom(t)
+            })
     }
 
 

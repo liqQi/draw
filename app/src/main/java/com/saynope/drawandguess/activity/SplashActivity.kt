@@ -34,6 +34,7 @@ class SplashActivity : BaseActivity() {
                 } else {
                     startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
                 }
+                finish()
             }
         }
     }

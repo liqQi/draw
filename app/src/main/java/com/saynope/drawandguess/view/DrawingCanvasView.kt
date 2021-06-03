@@ -2,11 +2,16 @@ package com.saynope.drawandguess.view
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import com.saynope.drawandguess.data.CacheDrawPath
 import com.saynope.drawandguess.data.DrawPath
+import com.saynope.drawandguess.data.DrawPathPoint
 import com.saynope.drawandguess.utils.DisplayUtils
 
 class DrawingCanvasView @JvmOverloads constructor(
@@ -16,8 +21,7 @@ class DrawingCanvasView @JvmOverloads constructor(
 ) : View(context, attributes, defStyleAttr) {
 
     private var path = Path()
-    private var flagControlInit = false
-    private var cacheControlPoint = Point(0, 0)
+    private var cachePath = arrayListOf<DrawPathPoint>()
     private val paint by lazy {
         Paint().also {
             it.color = Color.BLACK
@@ -42,7 +46,7 @@ class DrawingCanvasView @JvmOverloads constructor(
         }
     }
 
-    private val pathList = arrayListOf<DrawPath>()
+    private val cachePathList = arrayListOf<CacheDrawPath>()
 
     private var cachePencilColor = Color.BLACK
 
@@ -54,44 +58,45 @@ class DrawingCanvasView @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if(!isEnabled){
+        if (!isEnabled) {
             return false
         }
         when (event?.action) {
             MotionEvent.ACTION_DOWN -> {
+                cachePath.clear()
                 path = Path()
                 path.moveTo(event.x, event.y)
+                cachePath.add(DrawPathPoint(event.x, event.y))
             }
 
             MotionEvent.ACTION_MOVE -> {
-                cacheControlPoint = Point(event.x.toInt(), event.y.toInt())
-                if (!flagControlInit) {
-                    flagControlInit = !flagControlInit
-                } else {
-                    path.quadTo(
-                        cacheControlPoint.x.toFloat(),
-                        cacheControlPoint.y.toFloat(),
-                        event.x,
-                        event.y
-                    )
-                    invalidate()
-                }
+                path.lineTo(
+                    event.x,
+                    event.y
+                )
+                invalidate()
+                cachePath.add(DrawPathPoint(event.x, event.y))
             }
-
             MotionEvent.ACTION_UP -> {
-                pathList.add(DrawPath(path, paint.strokeWidth, paint.color))
+                val element = DrawPath(cachePath, paint.strokeWidth, paint.color)
+                drawOnPathCallBack?.invoke(element)
+                cachePathList.add(CacheDrawPath(path,paint.strokeWidth,paint.color))
             }
         }
         return true
     }
 
+
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.drawColor(fillPaint.color)
-        pathList.forEach {
+        cachePathList.forEach {
             run {
+
                 cachePaint.strokeWidth = it.width
                 cachePaint.color = it.color
+
                 canvas?.drawPath(it.path, cachePaint)
             }
         }
@@ -110,7 +115,7 @@ class DrawingCanvasView @JvmOverloads constructor(
 
     fun fillCanvasWithColor(color: Int) {
         fillPaint.color = color
-        pathList.clear()
+        cachePathList.clear()
         path.reset()
         invalidate()
     }
@@ -120,4 +125,24 @@ class DrawingCanvasView @JvmOverloads constructor(
         cachePencilColor = paint.color
         paint.color = fillPaint.color
     }
+
+    fun addOnDrawPathFinishCallback(block: (pathPoints: DrawPath) -> Unit) {
+        this.drawOnPathCallBack = block
+    }
+
+    fun onReceiveNetDrawPath(it: DrawPath) {
+        val path = Path()
+        for (i in it.path.indices) {
+            if (i == 0) {
+                path.moveTo(it.path[0].x, it.path[0].y)
+            } else {
+                path.lineTo(it.path[i].x, it.path[i].y)
+            }
+        }
+        cachePathList.add(CacheDrawPath(path,it.width,it.color))
+        invalidate()
+    }
+
+    private var drawOnPathCallBack: ((pathPoints: DrawPath) -> Unit)? = null
+
 }

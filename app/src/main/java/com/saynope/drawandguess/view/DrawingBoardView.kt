@@ -8,10 +8,12 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.saynope.drawandguess.R
 import com.saynope.drawandguess.adapter.ColorAdapter
+import com.saynope.drawandguess.data.DrawPath
 import com.saynope.drawandguess.databinding.ViewDrawingBoardBinding
 import com.saynope.drawandguess.utils.DisplayUtils
 import com.saynope.drawandguess.utils.DrawableFactory
@@ -98,7 +100,7 @@ class DrawingBoardView @JvmOverloads constructor(
             childParams.weight = 1f
             imageView.layoutParams = childParams
             imageView.setImageDrawable(DrawableFactory.createPencilDrawable(context, index + 1f))
-            imageView.foreground = context.getDrawable(R.drawable.draw_util_forground)
+            imageView.foreground = AppCompatResources.getDrawable(context,R.drawable.draw_util_forground)
             imageView.tag = index
             imageView.setOnClickListener {
                 run {
@@ -126,4 +128,11 @@ class DrawingBoardView @JvmOverloads constructor(
         bind.drawingCanvas.isEnabled = enabled
     }
 
+    fun addOnDrawPathFinishCallback(block:(pathPoints:DrawPath)->Unit){
+        bind.drawingCanvas.addOnDrawPathFinishCallback(block)
+    }
+
+    fun onReceiveNetDrawPath(it: DrawPath) {
+        bind.drawingCanvas.onReceiveNetDrawPath(it)
+    }
 }

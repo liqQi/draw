@@ -4,13 +4,14 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
-import com.saynope.drawandguess.data.Room
+import android.util.Log
 import com.saynope.drawandguess.data.RoomMessage
 import com.saynope.drawandguess.repo.RoomRepo
 import com.saynope.drawandguess.repo.UserRepo
 import com.saynope.drawandguess.utils.GsonUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
@@ -33,25 +34,22 @@ class WebSocketService : Service() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder {
+        coroutineScope.launch {
+            webSocketConnector =
+                RoomWebSocketClient(URI.create(WEB_SOCKET_END + userRepo.getUser().id + "/" + roomRepo.getCacheRoom().id))
+            webSocketConnector.connect()
+            roomRepo.startReceiveUserCommand().collectLatest {
+                webSocketConnector.send(GsonUtils.toJson(it))
+            }
+            roomRepo.startReceiveUserMessage().collectLatest {
+                webSocketConnector.send(GsonUtils.toJson(it))
+            }
+        }
         return WebSocketBinder()
     }
 
-    override fun onCreate() {
-        super.onCreate()
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val stringExtra = intent?.getStringExtra("ROOM")
-        if (stringExtra != null) {
-            val room: Room = GsonUtils.fromJson(stringExtra, Room::class.java)
-            coroutineScope.launch {
-                webSocketConnector =
-                    RoomWebSocketClient(URI.create(WEB_SOCKET_END + userRepo.getUser()?.id + "/" + room.id))
-                webSocketConnector.connect()
-            }
-        }
-
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -59,40 +57,50 @@ class WebSocketService : Service() {
         return super.onUnbind(intent)
     }
 
-    inner class WebSocketBinder : Binder() {
-        fun sendMessage(msg: RoomMessage) {
-            webSocketConnector.send(GsonUtils.toJson(msg))
-        }
-    }
-
+    inner class WebSocketBinder : Binder()
 
     inner class RoomWebSocketClient(url: URI) : WebSocketClient(url) {
         override fun onOpen(handshakedata: ServerHandshake?) {
-            coroutineScope.launch {
-                repeat(5) {
-                    delay(1000)
-                    val roomMessage = RoomMessage("1", "加入房间成功", "2", RoomMessage.SERVER_NOTIFY)
-                    roomRepo.updateMessage(roomMessage)
-                }
-            }
+
         }
 
         override fun onMessage(message: String?) {
             if (message == null) {
                 println("error message")
             } else {
-//                roomViewModel.receiveMessage(message)
-                println(message)
+                Log.d("ws", "onMessage: $message")
+                coroutineScope.launch {
+                    kotlin.runCatching {
+                        try{
+                            val roomMessage = GsonUtils.fromJson(message, RoomMessage::class.java)
+                            when(roomMessage.action){
+                                RoomMessage.SERVER_NOTIFY->
+                                    roomRepo.onMessage(roomMessage)
+                                RoomMessage.ROOM_READY->
+                                    roomRepo.onCommand(roomMessage)
+                                RoomMessage.USER_DRAW_ONE_PATH->
+                                    roomRepo.onCommand(roomMessage)
+                                else -> {}
+                            }
+                        }catch (e:Exception){
+                            e.printStackTrace()
+                        }
+                    }
+                }
             }
         }
 
+        override fun send(text: String?) {
+            super.send(text)
+            Log.d("ws", "send: $text")
+        }
+
         override fun onClose(code: Int, reason: String?, remote: Boolean) {
-//            roomViewModel.updateRoomStatus(false)
+
         }
 
         override fun onError(ex: Exception?) {
-//            roomViewModel.updateRoomStatus(false)
-//            roomViewModel.onWebSocketError()
+
         }
 
     }

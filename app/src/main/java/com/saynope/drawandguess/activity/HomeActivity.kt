@@ -34,14 +34,9 @@ class HomeActivity : BaseActivity() {
         })
         registerLoadAndErrorHandleViewModel(homeViewModel)
         homeViewModel.roomJoinResponse.observe(this, { room ->
-            val intent = Intent(this, WebSocketService::class.java)
-            intent.putExtra("ROOM", GsonUtils.toJson(room))
-            startService(intent)
-        })
-        homeViewModel.roomJoinStatus.observe(this, { join ->
-            if (join) {
-//                startActivity(Intent(this@HomeActivity, RoomActivity::class.java))
-            }
+            val intent = Intent(this@HomeActivity, RoomActivity::class.java)
+            intent.putExtra("ROOM",GsonUtils.toJson(room))
+            startActivity(intent)
         })
         initView()
     }
@@ -55,12 +50,6 @@ class HomeActivity : BaseActivity() {
         homeBinding.createRoom.setOnClickListener { _ ->
             homeViewModel.createRoom()
         }
-        lifecycleScope.launch {
-            homeViewModel.receiveMessage().collectLatest {
-                println(GsonUtils.toJson(it))
-            }
-        }
-
     }
 
     private fun showJoinRoomDialog() {
@@ -83,11 +72,4 @@ class HomeActivity : BaseActivity() {
     private fun joinRoom(roomId: String) {
         homeViewModel.joinRoom(roomId)
     }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopService(Intent(this, WebSocketService::class.java))
-    }
-
-
 }
